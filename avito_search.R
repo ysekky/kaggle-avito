@@ -34,9 +34,13 @@ user_search_type_sum2 <- s01_search[, .(user_query_ratio=mean(SearchQuery!='')),
 # user_idでサマった平均のクエリの長さ, パラメータの長さの平均
 user_search_query_sum <- s01_search[, .(user_search_nchar_mean=mean(query_nchar), user_search_param_nchar_mean=mean(param_nchar)), by=UserID]
 
+# ユーザのLocationのエントロピー
 user_search_loc_entropy <- calc_entropy(s01_search, 'UserID', 'LocationID', 'user_search_loc')
+# 曜日のエントロピー,
 user_search_dow_entropy <- calc_entropy(s01_search, 'UserID', 'dow', 'user_search_dow')
+# hourのエントロピー,
 user_search_hour_entropy <- calc_entropy(s01_search, 'UserID', 'hour', 'user_search_hour')
+# search paramsのエントロピー?
 user_sparam_entropy <- calc_entropy(s01_search, 'UserID', 'SearchParams', 'user_search_sparam')
 
 s01_search[, one := 1]
