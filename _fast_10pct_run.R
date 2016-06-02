@@ -1,15 +1,16 @@
 # run entire script with 10% data -- highly recommended in case there are bugs
 
-setwd('/home/fast/2015_avito') # modify this line to point the right folder
+# ここは任意のパスにする
+setwd('/home/fast/2015_avito')
 
 require(inline)
 require(sqldf)
 require(data.table)
 require(xgboost)
 require(tau)
-
+# 必要な関数群をロード
 source('kaggle-avito/avito_utils.R')
-
+# full_dataがTrueだと全データ, Falseだと10％のデータを使う
 full_data <- F
 source('kaggle-avito/avito_data1.R')
 
@@ -34,4 +35,3 @@ predv_list1 <- predv / ctr
 
 predv_avg12 <- predv_list1 * .5 + predv_list2 * .5
 print(paste("logloss of avg of two xgbs (should be ~.04176): ", logloss(yv, predv_avg12)))
-

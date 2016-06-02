@@ -1,27 +1,41 @@
 #convert time to an integer (seconds from min(time))
+# データセットから時間を取得
 time2 <- strptime(s01_search$SearchDate, '%Y-%m-%d %H:%M:%S')
-
+# 最小値を取得
 min_time2 <- min(time2)
+# 最小値を日付ベースにする
 min_time3 <- as.Date(min_time2)
+# 日付ベースの最小値から何秒たったかをintで保持
 time3 <- as.integer(difftime(time2, min_time3, unit='sec'))
+# conserve_ramはfullデータの時に実施してる
 if(conserve_ram) {
   rm(time2)
 }
 gc()
-
+# search_time3として何秒立ったかを入れてる
 s01_search[, search_time3 := time3]
-s01_search[, hour := as.integer(round(as.integer(search_time3)  %/% 3600)) %% 24]
-s01_search[, dow := as.integer(round(as.integer(search_time3)  %/% 86400)) %% 7]
+# "%/%”=>整数除算 %%=>あまり
+# round(as.integer(search_time3) %/% 3600)  # 何時間たったか
+# “%/%”なのになんでroundしてんの
+# ってかもともとas.integerしてるじゃんなんで改めてしてるんの
+# as.integer(round(as.integer(search_time3) %/% 3600)) %% 24 # 何時か?
+s01_search[, hour := as.integer(round(as.integer(search_time3) %/% 3600)) %% 24]
+# 86400 = 3600 * 24
+# 何曜日か?
+s01_search[, dow := as.integer(round(as.integer(search_time3) %/% 86400)) %% 7]
+# nchar => length
+# クエリの長さ
 s01_search[, query_nchar := nchar(SearchQuery)]
+# パラメータの長さ
 s01_search[, param_nchar := nchar(SearchParams)]
 
 user_search_type_sum2 <- s01_search[, .(user_query_ratio=mean(SearchQuery!='')), by=UserID]
 user_search_query_sum <- s01_search[, .(user_search_nchar_mean=mean(query_nchar), user_search_param_nchar_mean=mean(param_nchar)), by=UserID]
 
-user_search_loc_entropy <- calc_entropy(s01_search, 'UserID', 'LocationID', 'user_search_loc') 
-user_search_dow_entropy <- calc_entropy(s01_search, 'UserID', 'dow', 'user_search_dow') 
-user_search_hour_entropy <- calc_entropy(s01_search, 'UserID', 'hour', 'user_search_hour') 
-user_sparam_entropy <- calc_entropy(s01_search, 'UserID', 'SearchParams', 'user_search_sparam') 
+user_search_loc_entropy <- calc_entropy(s01_search, 'UserID', 'LocationID', 'user_search_loc')
+user_search_dow_entropy <- calc_entropy(s01_search, 'UserID', 'dow', 'user_search_dow')
+user_search_hour_entropy <- calc_entropy(s01_search, 'UserID', 'hour', 'user_search_hour')
+user_sparam_entropy <- calc_entropy(s01_search, 'UserID', 'SearchParams', 'user_search_sparam')
 
 s01_search[, one := 1]
 
@@ -50,8 +64,8 @@ s01_search[, user_session_no := tmp$V1]
 tmp <- s01_search[, cumsum(one), by=list(UserID, user_session_no)]
 s01_search[, user_session_seq := tmp$V1]
 
-s01_search[, new_search := as.numeric(is.na(prev_user_id) | UserID != prev_user_id | 
-                                           SearchQuery != prev_search_query | 
+s01_search[, new_search := as.numeric(is.na(prev_user_id) | UserID != prev_user_id |
+                                           SearchQuery != prev_search_query |
                                            SearchParams != prev_search_param)]
 tmp <- s01_search[, cumsum(new_search), by=list(UserID)]
 s01_search[, user_search_no := tmp$V1]
