@@ -43,15 +43,15 @@ user_search_hour_entropy <- calc_entropy(s01_search, 'UserID', 'hour', 'user_sea
 # search paramsのエントロピー?
 user_sparam_entropy <- calc_entropy(s01_search, 'UserID', 'SearchParams', 'user_search_sparam')
 
+# oneに1を代入
 s01_search[, one := 1]
-
+# user_idと時間でソート
 s01_search <- s01_search[order(UserID, -search_time3), ]
+# ユーザIDのリストで1を累積和
+# 何回目の検索かを記録してる
 a <- s01_search[, cumsum(one), by=list(UserID)]
+# search_time_rseq
 s01_search[, search_time_rseq := a$V1]
-
-s01_search <- s01_search[order(UserID, search_time3), ]
-a <- s01_search[, cumsum(one), by=list(UserID)]
-s01_search[, search_time_seq := a$V1]
 
 #s01_search <- s01_search[order(UserID, search_time3), ]
 tmp <- c(NA, head(s01_search$search_time3, -1))
