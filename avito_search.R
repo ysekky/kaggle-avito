@@ -29,7 +29,9 @@ s01_search[, query_nchar := nchar(SearchQuery)]
 # パラメータの長さ
 s01_search[, param_nchar := nchar(SearchParams)]
 
+# クエリ入れてる率
 user_search_type_sum2 <- s01_search[, .(user_query_ratio=mean(SearchQuery!='')), by=UserID]
+# user_idでサマった平均のクエリの長さ, パラメータの長さの平均
 user_search_query_sum <- s01_search[, .(user_search_nchar_mean=mean(query_nchar), user_search_param_nchar_mean=mean(param_nchar)), by=UserID]
 
 user_search_loc_entropy <- calc_entropy(s01_search, 'UserID', 'LocationID', 'user_search_loc')
