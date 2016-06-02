@@ -52,27 +52,29 @@ s01_search <- s01_search[order(UserID, -search_time3), ]
 a <- s01_search[, cumsum(one), by=list(UserID)]
 # search_time_rseq
 s01_search[, search_time_rseq := a$V1]
-
-#s01_search <- s01_search[order(UserID, search_time3), ]
-tmp <- c(NA, head(s01_search$search_time3, -1))
-s01_search[, prev_search_time3:=tmp]
+# 前のユーザID入れてる
+# よくわかんない、最初とか最後を定義したいのかなと考えてる
 tmp <- c(NA, head(s01_search$UserID, -1))
 s01_search[, prev_user_id:=tmp]
+
+# 前の検索
 s01_search[, prev_search_query:=c(NA, head(SearchQuery, -1))]
 s01_search[, prev_search_param:=c(NA, head(SearchParams, -1))]
-
+# 前の検索からの経過時間
 s01_search[, time_gap_prev_search := search_time3 - prev_search_time3]
+# 前のユーザIDがないか違ったら経過時間を-1いれる
 s01_search[is.na(prev_user_id) | (UserID != prev_user_id), time_gap_prev_search := (-1)]
-
+# is_gap, 連続した検索か? ユーザが変わるか900秒経つかで設定してる
 s01_search[, is_gap := as.numeric(time_gap_prev_search < 0 | time_gap_prev_search > 900)]
+# sessionのカウント. 何個目のセッションか
 tmp <- s01_search[, cumsum(is_gap), by=list(UserID)]
 s01_search[, user_session_no := tmp$V1]
+# セッション内での検索数
 tmp <- s01_search[, cumsum(one), by=list(UserID, user_session_no)]
 s01_search[, user_session_seq := tmp$V1]
+#
+s01_search[, new_search := as.numeric(is.na(prev_user_id) | UserID != prev_user_id | SearchQuery != prev_search_query |　SearchParams != prev_search_param)]
 
-s01_search[, new_search := as.numeric(is.na(prev_user_id) | UserID != prev_user_id |
-                                           SearchQuery != prev_search_query |
-                                           SearchParams != prev_search_param)]
 tmp <- s01_search[, cumsum(new_search), by=list(UserID)]
 s01_search[, user_search_no := tmp$V1]
 tmp <- s01_search[, cumsum(one), by=list(UserID, user_search_no)]
