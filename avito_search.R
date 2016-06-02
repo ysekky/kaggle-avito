@@ -59,6 +59,10 @@ s01_search <- s01_search[order(UserID, search_time3), ]
 a <- s01_search[, cumsum(one), by=list(UserID)]
 s01_search[, search_time_seq := a$V1]
 
+# 前の検索時間をいれる
+tmp <- c(NA, head(s01_search$search_time3, -1))
+s01_search[, prev_search_time3:=tmp]
+
 # 前のユーザID入れてる
 # よくわかんない、最初とか最後を定義したいのかなと考えてる
 tmp <- c(NA, head(s01_search$UserID, -1))
