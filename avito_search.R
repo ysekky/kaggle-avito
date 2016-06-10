@@ -83,20 +83,27 @@ s01_search[, user_session_no := tmp$V1]
 # セッション内での検索数
 tmp <- s01_search[, cumsum(one), by=list(UserID, user_session_no)]
 s01_search[, user_session_seq := tmp$V1]
-#
+# 新規の検索かどうかをみて新規の検索だったら1
 s01_search[, new_search := as.numeric(is.na(prev_user_id) | UserID != prev_user_id | SearchQuery != prev_search_query |　SearchParams != prev_search_param)]
-
+# 新規の検索の累積和をユーザごとに, 何個目の検索かを示す
 tmp <- s01_search[, cumsum(new_search), by=list(UserID)]
 s01_search[, user_search_no := tmp$V1]
+# 各検索内でのseqを示す
 tmp <- s01_search[, cumsum(one), by=list(UserID, user_search_no)]
 s01_search[, user_same_search_seq := tmp$V1]
 
+# ユーザごとにクエリ入れた検索が何個あるか
 user_search_nzquery_cnt <- s01_search[, sum(SearchQuery != ''), by=list(UserID)]
 setnames(user_search_nzquery_cnt, 'V1', 'user_search_nzquery_cnt')
 user_search_cnt <- s01_search[, .N, by=list(UserID)]
+# クエリ入れてるかどうか関係なしの検索数
 setnames(user_search_cnt, 'N', 'user_search_cnt')
+# マージしてる
 left_merge_inplace(user_search_cnt, user_search_nzquery_cnt, by='UserID')
+# ここでuser_search_cntという新しい変数ができてる
+# 今見ている限りだと使われてい無さそうな気配
 
+# ここから下search以外のデータを使ってる
 ad_visit_cnt <- s01_visit[, .N, by=list(AdID)]
 setnames(ad_visit_cnt, 'N', 'ad_visit_cnt')
 left_merge_inplace(s01_ths, ad_visit_cnt, by='AdID', verbose=T)
